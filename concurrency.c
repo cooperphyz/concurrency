@@ -24,19 +24,26 @@ int parsestring(char str[]) {
 
 int main( ) {
 
-   char str[MAX_LIMIT];
-   char delim[] = " ";
+    char str[MAX_LIMIT];
+    char delim[] = " ";
 
-   printf("Enter a value: ");
-   fgets(str, MAX_LIMIT, stdin);
+    printf("Enter a value: ");
+    fgets(str, MAX_LIMIT, stdin);
 
-   parsestring(str);
+    parsestring(str);
 
-   printf("%s\n", parsedInput[0]);
-   printf("%s\n", parsedInput[1]);
-   printf("%s\n", parsedInput[2]);
-   printf("%s\n", parsedInput[3]);
-   printf("%s\n", parsedInput[4]);
+    if(strcmp(parsedInput[0], "-p") == 0) {
+        printf("Gobbity\n");
+    }
+    else if(strcmp(parsedInput[0], "-p") == 0) {
+        printf("Gobbity\n");
+    }
+    else if(strcmp(parsedInput[0], "-p") == 0) {
+        printf("Gobbity\n");
+    }
+    else {
+        printf("Invalid input\n");
+    }
 
-   return 0;
+    return 0;
 }
