@@ -9,6 +9,8 @@
 #define MAX_LIMIT 15
 char parsedInput[2][5];
 
+
+// Function for parsing input into an array of chars
 int parsestring(char str[]) {
 	int init_size = strlen(str);
 	char delim[] = " ";
@@ -27,32 +29,7 @@ int parsestring(char str[]) {
 	return 0; 
 }
 
-int main( ) {
-
-    char str[MAX_LIMIT];
-    char delim[] = " ";
-
-    printf("Enter a value: ");
-    fgets(str, MAX_LIMIT, stdin);
-
-    parsestring(str);
-
-    if(strcmp(parsedInput[0], "-p") == 0) {
-        printf("Gobbity\n");
-    }
-    else if(strcmp(parsedInput[0], "-p") == 0) {
-        printf("Gobbity\n");
-    }
-    else if(strcmp(parsedInput[0], "-p") == 0) {
-        printf("Gobbity\n");
-    }
-    else {
-        printf("Invalid input\n");
-    }
-
-    return 0;
-}
-
+// Dining Philosophers Program
 
 sem_t room;
 sem_t chopstick[5];
@@ -99,3 +76,31 @@ void eat(int phil)
 {
 	printf("\nPhilosopher %d is eating",phil);
 }
+
+int main( ) {
+
+    char str[MAX_LIMIT];
+    char delim[] = " ";
+
+    printf("Enter a value: ");
+    fgets(str, MAX_LIMIT, stdin);
+
+    parsestring(str);
+
+    if(strcmp(parsedInput[0], "-p") == 0) {
+        printf("Gobbity\n");
+    }
+    else if(strcmp(parsedInput[0], "-d\n") == 0) {
+        diningphilosophers();
+        printf("\n");
+    }
+    else if(strcmp(parsedInput[0], "-b\n") == 0) {
+        printf("Gobbity\n");
+    }
+    else {
+        printf("Invalid input\n");
+    }
+
+    return 0;
+}
+
