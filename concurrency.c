@@ -34,6 +34,77 @@ int parsestring(char str[]) {
 	return 0; 
 }
 
+// Potion Brewers Program
+
+// Flags to be set and unset during runtime for ingredient choosing
+int table_flag = 1;
+int generated_item[2], generated = 0;
+//Ingredients list
+char *ingredients[] = {"Bezoar", "Unicorn Horn", "Mistletoe Berry"};
+sem_t table;
+
+void *agent(void *arg) {
+    int i,j,k = 0;
+    while(1) {
+        sleep(1);
+        sem_wait(&table);
+        if(table_flag == 1) {
+            // Generate a random number from length of ingredients and choose it
+            i = rand() % 3;
+            j = rand() % 3;
+            generated_item[0] = i;
+            generated_item[1] = j;
+
+            printf("Ingredients Chosen: %s, %s\n", ingredients[i], ingredients[j]);
+            // Set the flags letting know items have been generated and table is free
+            generated = 1;
+            table_flag = 0;
+        }
+        sem_post(&table);
+    }
+}
+void *brewer(int i) {
+    // Run infinitely as defined in module content
+    while(1) {
+        sleep(1);
+        sem_wait(&table);
+        // If ingredients are generated, check to see if right items
+        if(table_flag == 0) {
+            if(generated && generated_item[0] == i && generated_item[1] != i) {
+                printf("Potion Master has completed potion\n");
+
+                // Allow more ingredients to be generated
+                table_flag = 1;
+                generated = 0;
+            } else {
+                // Didn't select right ingredients, try again after sleeping
+                sleep(1);
+                table_flag = 1;        
+            }
+        // Didn't select right ingredients, try again after sleeping
+        } else {
+            sleep(1);
+            table_flag = 1;
+        }
+        sem_post(&table);
+    }
+}
+
+int brewers() {
+    //Initialize and create a thread for master and each 3 brewers
+    pthread_t brewer0, brewer1, brewer2, master;
+    sem_init(&table,0,1);
+
+    //pthread_create(&master,0,agent,0);
+    pthread_create(&master, NULL, (void *)agent, 0);
+    pthread_create(&brewer0, NULL, (void *)brewer, 0);
+    pthread_create(&brewer1, NULL, (void *)brewer, 0);
+    pthread_create(&brewer2, NULL, (void *)brewer, 0);
+    //pthread_create(&brewer0,0,brewer,0);
+    
+    while(1);
+}
+
 // Dining Philosophers Program
 
 #define MAXMUNCHER 5
@@ -195,84 +266,13 @@ int producerconsumer(char* prodcount, char* concount)
     return 0;
 }
 
-// Potion Brewers Program
-
-// Flags to be set and unset during runtime for ingredient choosing
-int table_flag = 1;
-int generated_item[2], generated = 0;
-//Ingredients list
-char *ingredients[] = {"Bezoar", "Unicorn Horn", "Mistletoe Berry"};
-sem_t table;
-
-void *agent(void *arg) {
-    int i,j,k = 0;
-    while(1) {
-        sleep(1);
-        sem_wait(&table);
-        if(table_flag == 1) {
-            // Generate a random number from length of ingredients and choose it
-            i = rand() % 3;
-            j = rand() % 3;
-            generated_item[0] = i;
-            generated_item[1] = j;
-
-            printf("Ingredients Chosen: %s, %s\n", ingredients[i], ingredients[j]);
-            // Set the flags letting know items have been generated and table is free
-            generated = 1;
-            table_flag = 0;
-        }
-        sem_post(&table);
-    }
-}
-void *brewer(int i) {
-    // Run infinitely as defined in module content
-    while(1) {
-        sleep(1);
-        sem_wait(&table);
-        // If ingredients are generated, check to see if right items
-        if(table_flag == 0) {
-            if(generated && generated_item[0] == i && generated_item[1] != i) {
-                printf("Potion Master has completed potion\n");
-
-                // Allow more ingredients to be generated
-                table_flag = 1;
-                generated = 0;
-            } else {
-                // Didn't select right ingredients, try again after sleeping
-                sleep(1);
-                table_flag = 1;        
-            }
-        // Didn't select right ingredients, try again after sleeping
-        } else {
-            sleep(1);
-            table_flag = 1;
-        }
-        sem_post(&table);
-    }
-}
-
-int brewers() {
-    //Initialize and create a thread for master and each 3 brewers
-    pthread_t brewer0, brewer1, brewer2, master;
-    sem_init(&table,0,1);
-
-    //pthread_create(&master,0,agent,0);
-    pthread_create(&master, NULL, (void *)agent, 0);
-    pthread_create(&brewer0, NULL, (void *)brewer, 0);
-    pthread_create(&brewer1, NULL, (void *)brewer, 0);
-    pthread_create(&brewer2, NULL, (void *)brewer, 0);
-    //pthread_create(&brewer0,0,brewer,0);
-    
-    while(1);
-}
-
 int main( ) {
 
     // Input parsing setup
     char str[MAX_LIMIT];
     char delim[] = " ";
 
-    printf("Enter a value: ");
+    printf("Enter a command: ");
     fgets(str, MAX_LIMIT, stdin);
 
     parsestring(str);
