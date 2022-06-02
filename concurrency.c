@@ -1,4 +1,4 @@
-// Concurrency Program made by Gatlin Cooper CS444
+// Concurrency Program made by Gatlin Cooper CS444 Spring 2022
 // Compile with gcc concurrency.c -o concurrency -lpthread
 // Run with ./concurrency
 
@@ -72,7 +72,7 @@ void * philosopher(void * num)
 	int philos=*(int *)num;
     // Sit down and wait at table for opening for chopsticks
 	sem_wait(&table);
-    
+
 	printf("\nPhilosopher #%d has sat down",philos);
 	sem_wait(&chopstick[philos]);
 	sem_wait(&chopstick[(philos+1)%MAXMUNCHER]);
@@ -214,6 +214,7 @@ void *agent(void *arg) {
             j = rand() % 3;
             generated_item[0] = i;
             generated_item[1] = j;
+
             printf("Ingredients Chosen: %s, %s\n", ingredients[i], ingredients[j]);
             // Set the flags letting know items have been generated and table is free
             generated = 1;
@@ -231,6 +232,7 @@ void *brewer(int i) {
         if(table_flag == 0) {
             if(generated && generated_item[0] == i && generated_item[1] != i) {
                 printf("Potion Master has completed potion\n");
+
                 // Allow more ingredients to be generated
                 table_flag = 1;
                 generated = 0;
