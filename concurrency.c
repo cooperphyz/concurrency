@@ -77,6 +77,87 @@ void eat(int phil)
 	printf("\nPhilosopher %d is eating",phil);
 }
 
+// Producer-Consumer Program
+
+#define MaxItems 3 // Maximum items a producer can produce or a consumer can consume
+#define BufferSize 5 // Size of the buffer
+
+sem_t empty;
+sem_t full;
+int in = 0;
+int out = 0;
+int buffer[BufferSize];
+pthread_mutex_t mutex;
+
+void *producer(void *pno)
+{   
+    int item;
+    for(int i = 0; i < MaxItems; i++) {
+        // Random "item" generation
+        item = rand(); 
+        sem_wait(&empty);
+        pthread_mutex_lock(&mutex);
+        buffer[in] = item;
+        printf("Producer %d: Insert Item # %d at %d\n", *((int *)pno),buffer[in],in);
+        in = (in+1)%BufferSize;
+        pthread_mutex_unlock(&mutex);
+        sem_post(&full);
+    }
+}
+void *consumer(void *cno)
+{   
+    for(int i = 0; i < MaxItems; i++) {
+        sem_wait(&full);
+        pthread_mutex_lock(&mutex);
+        int item = buffer[out];
+        printf("Consumer %d: Consume Item %d from Producer %d\n",*((int *)cno),item, out);
+        out = (out+1)%BufferSize;
+        pthread_mutex_unlock(&mutex);
+        sem_post(&empty);
+    }
+}
+
+int producerconsumer(char* prodcount, char* concount)
+{   
+    pthread_t pro[*prodcount],con[*concount];
+    pthread_mutex_init(&mutex, NULL);
+    sem_init(&empty,0,BufferSize);
+    sem_init(&full,0,0);
+    int x, y;
+
+    // Convert to int for iteration later
+    sscanf(prodcount, "%d", &x);
+    sscanf(concount, "%d", &y);
+
+    // Fill array with integers for naming purposes
+    int a[255] = {}; 
+    for(int i = 0; i < 255; i++) {
+        a[i] = i;
+    }
+
+    // Create a producer/consumer thread for each value passed
+    for(int i = 0; i < x; i++) {
+        pthread_create(&pro[i], NULL, (void *)producer, (void *)&a[i]);
+    }
+    for(int i = 0; i < y; i++) {
+        pthread_create(&con[i], NULL, (void *)consumer, (void *)&a[i]);
+    }
+
+    // Join thread after creation 
+    for(int i = 0; i < x; i++) {
+        pthread_join(pro[i], NULL);
+    }
+    for(int i = 0; i < y; i++) {
+        pthread_join(con[i], NULL);
+    }
+
+    pthread_mutex_destroy(&mutex);
+    sem_destroy(&empty);
+    sem_destroy(&full);
+
+    return 0;
+}
+
 int main( ) {
 
     char str[MAX_LIMIT];
@@ -88,7 +169,8 @@ int main( ) {
     parsestring(str);
 
     if(strcmp(parsedInput[0], "-p") == 0) {
-        printf("Gobbity\n");
+        producerconsumer(parsedInput[2], parsedInput[4]);
+        printf("\n");
     }
     else if(strcmp(parsedInput[0], "-d\n") == 0) {
         diningphilosophers();
