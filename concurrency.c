@@ -1,3 +1,7 @@
+// Concurrency Program made by Gatlin Cooper CS444
+// Compile with gcc concurrency.c -o concurrency -lpthread
+// Run with ./concurrency
+
 #include <stdio.h>
 #include <string.h>
 #include<stdio.h>
