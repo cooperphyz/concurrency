@@ -152,7 +152,7 @@ void *consumer(void *conno)
 
 int producerconsumer(char* prodcount, char* concount)
 {   
-    pthread_t pro[*prodcount],con[*concount];
+    pthread_t prod[*prodcount],con[*concount];
     pthread_mutex_init(&mutex, NULL);
     sem_init(&empty,0,Buffer);
     sem_init(&full,0,0);
@@ -171,7 +171,7 @@ int producerconsumer(char* prodcount, char* concount)
 
     // Create a producer/consumer thread for each value passed
     for(int i = 0; i < x; i++) {
-        pthread_create(&pro[i], NULL, (void *)producer, (void *)&a[i]);
+        pthread_create(&prod[i], NULL, (void *)producer, (void *)&a[i]);
     }
 
     for(int i = 0; i < y; i++) {
@@ -180,7 +180,7 @@ int producerconsumer(char* prodcount, char* concount)
 
     // Join thread after creation 
     for(int i = 0; i < x; i++) {
-        pthread_join(pro[i], NULL);
+        pthread_join(prod[i], NULL);
     }
 
     for(int i = 0; i < y; i++) {
