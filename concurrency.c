@@ -72,6 +72,7 @@ void * philosopher(void * num)
 	int philos=*(int *)num;
     // Sit down and wait at table for opening for chopsticks
 	sem_wait(&table);
+    
 	printf("\nPhilosopher #%d has sat down",philos);
 	sem_wait(&chopstick[philos]);
 	sem_wait(&chopstick[(philos+1)%MAXMUNCHER]);
@@ -79,6 +80,7 @@ void * philosopher(void * num)
     // 'Eat' when given opportunity, print and continue with semaphore unlocking and posting status
 	eat(philos);
 	sleep(1);
+
 	printf("\nPhilosopher #%d has finished eating",philos);
     // Unlock semaphore by incrementing value for next philosopher
 	sem_post(&chopstick[(philos+1)%MAXMUNCHER]);
@@ -114,12 +116,14 @@ void *producer(void *prodno)
     for(int i = 0; i < MaxItems; i++) {
         // Random "item" generation
         item = rand(); 
-        sem_wait(&empty);
-        pthread_mutex_lock(&mutex);
 
         // Add item to buffer for consumer, print randomly produced item in what buffer slot
         buffer[in] = item;
-        printf("Producer %d: Insert Item # %d at %d\n", *((int *)prodno),buffer[in],in);
+
+        sem_wait(&empty);
+        pthread_mutex_lock(&mutex);
+
+        printf("Producer %d: Insert Item #%d at %d\n", *((int *)prodno),buffer[in],in);
 
         // Calculate next value for next position in buffer
         in = (in+1)%Buffer;
@@ -130,12 +134,14 @@ void *producer(void *prodno)
 void *consumer(void *conno)
 {   
     for(int i = 0; i < MaxItems; i++) {
-        sem_wait(&full);
-        pthread_mutex_lock(&mutex);
 
         // Read item from buffer, print consumed item number from what producer
         int item = buffer[out];
-        printf("Consumer %d: Consume Item %d from Producer %d\n",*((int *)conno),item, out);
+
+        sem_wait(&full);
+        pthread_mutex_lock(&mutex);
+
+        printf("Consumer %d: Consume Item #%d from Producer %d\n",*((int *)conno),item, out);
         // Calculate next value for next position in buffer
 
         out = (out+1)%Buffer;
@@ -167,6 +173,7 @@ int producerconsumer(char* prodcount, char* concount)
     for(int i = 0; i < x; i++) {
         pthread_create(&pro[i], NULL, (void *)producer, (void *)&a[i]);
     }
+
     for(int i = 0; i < y; i++) {
         pthread_create(&con[i], NULL, (void *)consumer, (void *)&a[i]);
     }
@@ -175,6 +182,7 @@ int producerconsumer(char* prodcount, char* concount)
     for(int i = 0; i < x; i++) {
         pthread_join(pro[i], NULL);
     }
+
     for(int i = 0; i < y; i++) {
         pthread_join(con[i], NULL);
     }
@@ -184,6 +192,75 @@ int producerconsumer(char* prodcount, char* concount)
     sem_destroy(&full);
 
     return 0;
+}
+
+// Potion Brewers Program
+
+// Flags to be set and unset during runtime for ingredient choosing
+int table_flag = 1;
+int generated_item[2], generated = 0;
+//Ingredients list
+char *ingredients[] = {"Bezoar", "Unicorn Horn", "Mistletoe Berry"};
+sem_t table;
+
+void *agent(void *arg) {
+    int i,j,k = 0;
+    while(1) {
+        sleep(1);
+        sem_wait(&table);
+        if(table_flag == 1) {
+            // Generate a random number from length of ingredients and choose it
+            i = rand() % 3;
+            j = rand() % 3;
+            generated_item[0] = i;
+            generated_item[1] = j;
+            printf("Ingredients Chosen: %s, %s\n", ingredients[i], ingredients[j]);
+            // Set the flags letting know items have been generated and table is free
+            generated = 1;
+            table_flag = 0;
+        }
+        sem_post(&table);
+    }
+}
+void *brewer(int i) {
+    // Run infinitely
+    while(1) {
+        sleep(1);
+        sem_wait(&table);
+        // If ingredients are generated, check to see if right items
+        if(table_flag == 0) {
+            if(generated && generated_item[0] == i && generated_item[1] != i) {
+                printf("Potion Master has completed potion\n");
+                // Allow more ingredients to be generated
+                table_flag = 1;
+                generated = 0;
+            } else {
+                // Didn't select right ingredients, try again after sleeping
+                sleep(1);
+                table_flag = 1;        
+            }
+        // Didn't select right ingredients, try again after sleeping
+        } else {
+            sleep(1);
+            table_flag = 1;
+        }
+        sem_post(&table);
+    }
+}
+
+int brewers() {
+    //Initialize and create a thread for master and each 3 brewers
+    pthread_t brewer0, brewer1, brewer2, master;
+    sem_init(&table,0,1);
+
+    //pthread_create(&master,0,agent,0);
+    pthread_create(&master, NULL, (void *)agent, 0);
+    pthread_create(&brewer0, NULL, (void *)brewer, 0);
+    pthread_create(&brewer1, NULL, (void *)brewer, 0);
+    pthread_create(&brewer2, NULL, (void *)brewer, 0);
+    //pthread_create(&brewer0,0,brewer,0);
+    
+    while(1);
 }
 
 int main( ) {
@@ -208,17 +285,22 @@ int main( ) {
             printf("Invalid parameters, format: -p -n <# producers> -c <# consumers>\n");
             return 0;
         }
+        printf("Producer/Consumer Program Chosen\n");
+        // Run program with args passed
         producerconsumer(parsedInput[2], parsedInput[4]);
         printf("\n");
+        
     }
     // Dining Philosophers Program
     else if(strcmp(parsedInput[0], "-d\n") == 0) {
+        printf("Dining Philosopher's Program Chosen\n");
         diningphilosophers();
         printf("\n");
     }
     // Potion Brewers Program
     else if(strcmp(parsedInput[0], "-b\n") == 0) {
-        diningphilosophers();
+        printf("Potion Brewers' Program Chosen\n");
+        brewers();
         printf("\n");
     }
     else {
