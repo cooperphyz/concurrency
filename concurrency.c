@@ -187,6 +187,7 @@ int producerconsumer(char* prodcount, char* concount)
         pthread_join(con[i], NULL);
     }
 
+    // Finish execution after each philospher has eaten
     pthread_mutex_destroy(&mutex);
     sem_destroy(&empty);
     sem_destroy(&full);
@@ -224,7 +225,7 @@ void *agent(void *arg) {
     }
 }
 void *brewer(int i) {
-    // Run infinitely
+    // Run infinitely as defined in module content
     while(1) {
         sleep(1);
         sem_wait(&table);
